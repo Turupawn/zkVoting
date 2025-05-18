@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<head>
+  <style>
+    .outer {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+    }
+    .inner {
+        width: 45%;
+        border: 1px solid black;
+        padding: 10px;
+        word-wrap: break-word;
+    }
+    #connected_section, #forms, #forms {
+      display: block;
+    }
+  </style>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.3.5/web3.min.js"></script>
+</head>
+<body>
+  <script type="module" src="/index.js"></script>
+  <h1>Noir app</h1>
+  
+  <div id="web3_message"></div>
+  <button id="connect_button" onclick="connectWallet()" style="display: none;">Connect Wallet</button>
+  
+  <div id="connected_section">
+    <div id="wallet_address"></div>
+    
+    <div id="forms">
+      <button id="compute_merkle_hash">Compute Tree</button>
+      
+      <h3>Simple Hash</h3>
+      <input id="hash_input" type="text" placeholder="Enter value to hash" />
+      <button id="compute_hash">Compute Hash</button>
+      <input id="hash_result" type="text" disabled placeholder="Hash result will appear here" />
+      
+      <h3>Two Element Hash</h3>
+      <input id="hash_input1" type="text" placeholder="Enter first value" />
+      <input id="hash_input2" type="text" placeholder="Enter second value" />
+      <button id="compute_two_hash">Compute Two Element Hash</button>
+      <input id="two_hash_result" type="text" disabled placeholder="Hash result will appear here" />
+      
+      <h3>Four Element Tree</h3>
+      <input id="tree_input1" type="text" placeholder="Enter first value" />
+      <input id="tree_input2" type="text" placeholder="Enter second value" />
+      <input id="tree_input3" type="text" placeholder="Enter third value" />
+      <input id="tree_input4" type="text" placeholder="Enter fourth value" />
+      <button id="compute_tree">Compute Tree</button>
+      <textarea id="tree_result" disabled rows="8" style="width: 100%; font-family: monospace;" placeholder="Tree will appear here"></textarea>
+      
+      <h3>Admin: Set Word</h3>      
+      <input id="admin_word" type="text" placeholder="Enter word (max 10 chars)" maxlength="10" />
+      <button id="admin_submit">Submit as Admin</button>
+      <h3>Player: Guess Word</h3>
+      <input id="player_word" type="text" placeholder="Enter word (max 10 chars)" maxlength="10" />
+      <input id="winner-address" type="text" pattern="^0x[a-fA-F0-9]{40}$" value="0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045" />
+      <button id="player_submit">Submit as Player</button>
+      <button id="generate_merkle_proof">Generate Merkle Proof</button>
+    </div>
+  </div>
+
+  <div class="outer">
+    <div id="logs" class="inner"><h2>Logs</h2></div>
+    <div id="results" class="inner"><h2>Proof</h2></div>
+  </div>
+</body>
+</html>
