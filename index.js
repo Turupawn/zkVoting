@@ -68,12 +68,12 @@ document.getElementById("compute_vote_tree").addEventListener("click", async () 
     // Compute root hash
     const rootHash = await pedersenHashArray([level1Hash1, level1Hash2]);
     
-    // Create merkle paths for each leaf
+    // Create merkle paths for each leaf as strings
     const merklePaths = {
-      0: [leaves[1], level1Hash2], // Path for leaf 0
-      1: [leaves[0], level1Hash2], // Path for leaf 1
-      2: [leaves[3], level1Hash1], // Path for leaf 2
-      3: [leaves[2], level1Hash1]  // Path for leaf 3
+      0: [leaves[1].toString(), level1Hash2.toString()], // Path for leaf 0
+      1: [leaves[0].toString(), level1Hash2.toString()], // Path for leaf 1
+      2: [leaves[3].toString(), level1Hash1.toString()], // Path for leaf 2
+      3: [leaves[2].toString(), level1Hash1.toString()]  // Path for leaf 3
     };
     
     // Format the tree visualization
@@ -87,19 +87,41 @@ document.getElementById("compute_vote_tree").addEventListener("click", async () 
     
     document.getElementById("vote_tree_result").value = tree;
     
-    // Store the computed values for the vote
-    window.voteData = {
+    // Store data in localStorage
+    localStorage.setItem('voteTree', tree);
+    localStorage.setItem('voteLeaves', JSON.stringify(leaves));
+    localStorage.setItem('voteRootHash', rootHash.toString());
+    localStorage.setItem('voteMerklePaths', JSON.stringify(merklePaths));
+    
+    console.log("Stored merkle paths:", merklePaths);
+    console.log("Stored data:", {
+      tree,
       leaves,
-      rootHash,
+      rootHash: rootHash.toString(),
       merklePaths
-    };
+    });
+    
+    show("results", "Tree computed and stored successfully!");
   } catch (error) {
     show("results", `Error: ${error.message}`);
   }
 });
 
 document.getElementById("cast_vote").addEventListener("click", async () => {
-  if (!window.voteData) {
+  // Check if tree data exists in localStorage
+  const storedTree = localStorage.getItem('voteTree');
+  const storedLeaves = localStorage.getItem('voteLeaves');
+  const storedRootHash = localStorage.getItem('voteRootHash');
+  const storedMerklePaths = localStorage.getItem('voteMerklePaths');
+  
+  console.log("Retrieved from storage:", {
+    tree: storedTree,
+    leaves: storedLeaves,
+    rootHash: storedRootHash,
+    merklePaths: storedMerklePaths
+  });
+  
+  if (!storedTree || !storedLeaves || !storedRootHash || !storedMerklePaths) {
     show("results", "Please compute the vote tree first!");
     return;
   }
@@ -116,7 +138,8 @@ document.getElementById("cast_vote").addEventListener("click", async () => {
   try {
     // Find the index of the private key's hash in the leaves
     const privKeyHash = await pedersenHashArray([privateKey]);
-    const index = window.voteData.leaves.findIndex(leaf => 
+    const leaves = JSON.parse(storedLeaves);
+    const index = leaves.findIndex(leaf => 
       BigInt('0x' + leaf.replace(/0x/gi, '')) === privKeyHash
     );
     
@@ -125,13 +148,18 @@ document.getElementById("cast_vote").addEventListener("click", async () => {
       return;
     }
     
+    console.log(1111111)
     const { proofBytes, publicInputs } = await generateVoteProof({
-      ...window.voteData,
+      leaves: JSON.parse(storedLeaves),
+      rootHash: BigInt(storedRootHash),
+      merklePaths: JSON.parse(storedMerklePaths),
       privateKey,
       proposalId,
       vote,
       index
     });
+    console.log(2222222)
+
     
     await castVote(proofBytes, publicInputs);
     show("results", "Vote cast successfully!");
@@ -139,3 +167,17 @@ document.getElementById("cast_vote").addEventListener("click", async () => {
     show("results", `Error: ${error.message}`);
   }
 });
+
+// Function to load stored tree
+function loadStoredTree() {
+  console.log("Loading stored tree");
+  const storedTree = localStorage.getItem('voteTree');
+  if (storedTree) {
+    document.getElementById("vote_tree_result").value = storedTree;
+    console.log("Tree loaded from storage:", storedTree);
+  } else {
+    console.log("No stored tree found");
+  }
+}
+
+loadStoredTree()
