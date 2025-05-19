@@ -1,7 +1,7 @@
 use dep::std;
 
 fn main(root : pub Field,
-        index: pub Field,
+        index: Field,
         priv_key: Field,
         note_hash_path: [Field; 2],
         proposalId: pub Field,

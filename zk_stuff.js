@@ -16,43 +16,6 @@ export const show = (id, content) => {
   container.appendChild(document.createElement("br"));
 };
 
-export async function generateProof(word, winnerAddress) {
-  // Initialize noir with precompiled circuit
-  const noir = new Noir(circuit);
-  const backend = new UltraHonkBackend(circuit.bytecode);
-  
-  // Convert word to array
-  const wordArray = Array.from(word)
-    .map(char => char.charCodeAt(0).toString())
-    .concat(Array(10 - word.length).fill("0"));
-  
-  show("logs", "Generating witness... ⏳");
-  const { witness } = await noir.execute({ 
-    word: wordArray,
-    word_length: word.length,
-    winner: winnerAddress
-  });
-  show("logs", "Generated witness... ✅");
-  
-  show("logs", "Generating proof... ⏳");
-  const proof = await backend.generateProof(witness, { keccak: true });
-  show("logs", "Generated proof... ✅");
-
-  show('logs', 'Verifying proof... ⌛');
-  const isValid = await backend.verifyProof(proof, { keccak: true });
-  show("logs", `Proof is ${isValid ? "valid" : "invalid"}... ✅`);
-  
-  const proofBytes = '0x' + Array.from(Object.values(proof.proof))
-    .map(n => n.toString(16).padStart(2, '0'))
-    .join('');
-  
-  return {
-    proofBytes,
-    publicInputs: proof.publicInputs,
-    rawProof: proof.proof
-  };
-}
-
 export async function pedersenHashArray(inputs) {
   const backend = new UltraHonkBackend(circuit.bytecode);
   await backend.instantiate();
@@ -150,55 +113,53 @@ export async function computeMerkleTree(leaves) {
   };
 }
 
-export async function generateMerkleProof() {
+export async function generateVoteProof(voteData) {
+  const { leaves, rootHash, merklePaths, privateKey, proposalId, vote, index } = voteData;
+  
   // Initialize noir with precompiled circuit
   const noir = new Noir(circuit);
   const backend = new UltraHonkBackend(circuit.bytecode);
   
-  // Dummy values for testing - make sure they're strings to match Prover.toml format
-  const inputs = {
-    index: "0",
-    leaf: "1",
-    note_hash_path: [
-      "2",
-      "3201571638824892542293291737096744916910129686872124558524447157776960499912"
-    ]
-  };
+  // Get the merkle path for the current index
+  const note_hash_path = merklePaths[index].map(hash => 
+    typeof hash === 'string' ? BigInt('0x' + hash.replace(/0x/gi, '')).toString() : hash.toString()
+  );
+
+  console.log(note_hash_path);
   
-  show("logs", "Generating witness... ⏳");
-  try {
-    const startTime = performance.now(); // More precise than Date.now()
-    console.log("Start time:", startTime);
-    
-    const { witness } = await noir.execute(inputs);
-    show("logs", "Generated witness... ✅");
-    
-    show("logs", "Generating proof... ⏳");
-    const proof = await backend.generateProof(witness, { keccak: false });
-    
-    const endTime = performance.now();
-    console.log("End time:", endTime);
-    
-    const duration = (endTime - startTime) / 1000; // Convert to seconds
-    console.log(`Total execution time: ${duration.toFixed(3)} seconds`);
+  // Prepare inputs for the circuit
+  const inputs = {
+    root: rootHash.toString(),
+    index: index.toString(),
+    priv_key: privateKey,
+    note_hash_path,
+    proposalId: proposalId.toString(),
+    vote: vote.toString()
+  };
 
-    show("logs", "Generated proof... ✅");
-
-    show('logs', 'Verifying proof... ⌛');
-    const isValid = await backend.verifyProof(proof, { keccak: false });
-    show("logs", `Proof is ${isValid ? "valid" : "invalid"}... ✅`);
-    
-    const proofBytes = '0x' + Array.from(Object.values(proof.proof))
-      .map(n => n.toString(16).padStart(2, '0'))
-      .join('');
-    
-    return {
-      proofBytes,
-      publicInputs: proof.publicInputs,
-      rawProof: proof.proof
-    };
-  } catch (error) {
-    show("logs", `Error: ${error.message}`);
-    throw error;
-  }
+  console.log(inputs);
+  
+  show("logs", "AxxGenerating witness... ⏳");
+  const { witness } = await noir.execute(inputs);
+  show("logs", "AGenerated witness... ✅");
+  
+  show("logs", "AGenerating proof... ⏳");
+  const proof = await backend.generateProof(witness, { keccak: true });
+  show("logs", "AGenerated proof... ✅");
+  
+  show('logs', 'AVerifying proof... ⌛');
+  const isValid = await backend.verifyProof(proof, { keccak: true });
+  show("logs", `AProof is ${isValid ? "valid" : "invalid"}... ✅`);
+  
+  const proofBytes = '0x' + Array.from(Object.values(proof.proof))
+    .map(n => n.toString(16).padStart(2, '0'))
+    .join('');
+  
+  console.log(proofBytes);
+  console.log(proof.publicInputs);
+  
+  return {
+    proofBytes,
+    publicInputs: proof.publicInputs
+  };
 }

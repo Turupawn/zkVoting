@@ -23,13 +23,30 @@
   <h1>Noir app</h1>
   
   <div id="web3_message"></div>
-  <button id="connect_button" onclick="connectWallet()" style="display: none;">Connect Wallet</button>
+  <button id="connect_button" style="display: block;">Connect Wallet</button>
   
   <div id="connected_section">
     <div id="wallet_address"></div>
     
     <div id="forms">
       <button id="compute_merkle_hash">Compute Tree</button>
+      
+      <h3>Propose New Vote</h3>
+      <input id="proposal_description" type="text" placeholder="Enter proposal description" />
+      <input id="proposal_deadline" type="number" placeholder="Enter deadline (unix timestamp)" />
+      <button id="submit_proposal">Submit Proposal</button>
+      
+      <h3>Cast Vote</h3>
+      <input id="vote_leaf1" type="text" placeholder="Enter first leaf" />
+      <input id="vote_leaf2" type="text" placeholder="Enter second leaf" />
+      <input id="vote_leaf3" type="text" placeholder="Enter third leaf" />
+      <input id="vote_leaf4" type="text" placeholder="Enter fourth leaf" />
+      <input id="vote_private_key" type="text" placeholder="Enter private key" />
+      <input id="vote_proposal_id" type="number" placeholder="Enter proposal ID" />
+      <input id="vote_value" type="number" placeholder="Enter vote (0 or 1)" min="0" max="1" />
+      <button id="compute_vote_tree">Compute Vote Tree</button>
+      <textarea id="vote_tree_result" disabled rows="8" style="width: 100%; font-family: monospace;" placeholder="Vote tree will appear here"></textarea>
+      <button id="cast_vote">Cast Vote</button>
       
       <h3>Simple Hash</h3>
       <input id="hash_input" type="text" placeholder="Enter value to hash" />
@@ -41,29 +58,12 @@
       <input id="hash_input2" type="text" placeholder="Enter second value" />
       <button id="compute_two_hash">Compute Two Element Hash</button>
       <input id="two_hash_result" type="text" disabled placeholder="Hash result will appear here" />
-      
-      <h3>Four Element Tree</h3>
-      <input id="tree_input1" type="text" placeholder="Enter first value" />
-      <input id="tree_input2" type="text" placeholder="Enter second value" />
-      <input id="tree_input3" type="text" placeholder="Enter third value" />
-      <input id="tree_input4" type="text" placeholder="Enter fourth value" />
-      <button id="compute_tree">Compute Tree</button>
-      <textarea id="tree_result" disabled rows="8" style="width: 100%; font-family: monospace;" placeholder="Tree will appear here"></textarea>
-      
-      <h3>Admin: Set Word</h3>      
-      <input id="admin_word" type="text" placeholder="Enter word (max 10 chars)" maxlength="10" />
-      <button id="admin_submit">Submit as Admin</button>
-      <h3>Player: Guess Word</h3>
-      <input id="player_word" type="text" placeholder="Enter word (max 10 chars)" maxlength="10" />
-      <input id="winner-address" type="text" pattern="^0x[a-fA-F0-9]{40}$" value="0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045" />
-      <button id="player_submit">Submit as Player</button>
-      <button id="generate_merkle_proof">Generate Merkle Proof</button>
     </div>
   </div>
 
   <div class="outer">
     <div id="logs" class="inner"><h2>Logs</h2></div>
-    <div id="results" class="inner"><h2>Proof</h2></div>
+    <div id="results" class="inner"><h2>Messages</h2></div>
   </div>
 </body>
 </html>

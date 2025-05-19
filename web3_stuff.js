@@ -1,5 +1,5 @@
 const NETWORK_ID = 17000 // Holesky
-const CONTRACT_ADDRESS = "0xfb89Fb2a693e71B237cE2E6A4CC2EEbFb59034c9"
+const CONTRACT_ADDRESS = "0xb7d410b84409f084170CAFdfE287F3Bb561a2925"
 
 // Define ABI directly instead of loading from file
 const CONTRACT_ABI = [
@@ -73,6 +73,8 @@ async function loadDapp() {
     
     const netId = await web3.eth.net.getId();
     if (netId !== NETWORK_ID) {
+      console.log("Network ID:", netId);
+      console.log("Network ID:", NETWORK_ID);
       document.getElementById("web3_message").textContent = "Please connect to Holesky network";
       return;
     }
@@ -145,4 +147,38 @@ async function submitPlayerProof(proofBytes, publicInputs) {
   }
 }
 
-export { loadDapp, connectWallet, submitAdminProof, submitPlayerProof }; 
+async function submitProposal(description, deadline) {
+  try {
+    await contract.methods.propose(description, deadline)
+      .send({ from: accounts[0] })
+      .on('transactionHash', (hash) => {
+        document.getElementById("web3_message").textContent = "Proposal submission pending...";
+      })
+      .on('receipt', (receipt) => {
+        document.getElementById("web3_message").textContent = "Proposal submitted successfully!";
+      });
+  } catch (error) {
+    console.error("Error submitting proposal:", error);
+    document.getElementById("web3_message").textContent = "Proposal submission failed";
+    throw error;
+  }
+}
+
+async function castVote(proofBytes, publicInputs) {
+  try {
+    await contract.methods.castVote(proofBytes, publicInputs)
+      .send({ from: accounts[0] })
+      .on('transactionHash', (hash) => {
+        document.getElementById("web3_message").textContent = "Vote casting pending...";
+      })
+      .on('receipt', (receipt) => {
+        document.getElementById("web3_message").textContent = "Vote cast successfully!";
+      });
+  } catch (error) {
+    console.error("Error casting vote:", error);
+    document.getElementById("web3_message").textContent = "Vote casting failed";
+    throw error;
+  }
+}
+
+export { loadDapp, connectWallet, submitAdminProof, submitPlayerProof, submitProposal, castVote }; 
