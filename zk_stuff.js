@@ -121,9 +121,7 @@ export async function generateVoteProof(voteData) {
   const backend = new UltraHonkBackend(circuit.bytecode);
   
   // Get the merkle path for the current index
-  const note_hash_path = merklePaths[index].map(hash => 
-    typeof hash === 'string' ? BigInt('0x' + hash.replace(/0x/gi, '')).toString() : hash.toString()
-  );
+  const note_hash_path = merklePaths[index]
 
   console.log(note_hash_path);
   

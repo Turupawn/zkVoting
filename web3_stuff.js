@@ -38,6 +38,53 @@ const CONTRACT_ABI = [
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "proposalId",
+				"type": "uint256"
+			}
+		],
+		"name": "proposals",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "description",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "deadline",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "forVotes",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "againstVotes",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "proposalCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
 	}
 ];
 
@@ -181,4 +228,46 @@ async function castVote(proofBytes, publicInputs) {
   }
 }
 
-export { loadDapp, connectWallet, submitAdminProof, submitPlayerProof, submitProposal, castVote }; 
+// Add delay helper function
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+async function getProposals() {
+  try {
+    let i = 0;
+    const proposals = [];
+    
+    while (true) {
+      try {
+        const proposal = await contract.methods.proposals(i).call();
+        // If deadline is 0, we've reached the end of valid proposals
+        if (proposal.deadline === '0') {
+          break;
+        }
+        proposals.push({
+          id: i,
+          ...proposal
+        });
+        i++;
+        
+        // Add a small delay between requests to avoid rate limiting
+        await delay(100);
+      } catch (error) {
+        // If we get a rate limit error, wait longer and retry
+        if (error.message && error.message.includes('rate limit exceeded')) {
+          console.log('Rate limit hit, waiting 2 seconds...');
+          await delay(2000);
+          continue;
+        }
+        // If it's any other error, we've probably reached the end of proposals
+        break;
+      }
+    }
+    
+    return proposals;
+  } catch (error) {
+    console.error("Error getting proposals:", error);
+    throw error;
+  }
+}
+
+export { loadDapp, connectWallet, submitAdminProof, submitPlayerProof, submitProposal, castVote, getProposals }; 

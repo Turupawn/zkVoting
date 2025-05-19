@@ -1,4 +1,4 @@
-import { loadDapp, submitAdminProof, submitPlayerProof, submitProposal, castVote, connectWallet } from './web3_stuff.js';
+import { loadDapp, submitAdminProof, submitPlayerProof, submitProposal, castVote, connectWallet, getProposals } from './web3_stuff.js';
 import { show, computeMerkleTree, pedersenHashArray, generateVoteProof } from './zk_stuff.js';
 
 // Initialize dapp
@@ -40,6 +40,68 @@ document.getElementById("compute_two_hash").addEventListener("click", async () =
   }
 });
 
+// Function to format timestamp
+function formatDate(timestamp) {
+  const date = new Date(Number(timestamp) * 1000);
+  return date.toLocaleString();
+}
+
+// Function to display proposals
+async function displayProposals() {
+  try {
+    const proposals = await getProposals();
+    const proposalsList = document.getElementById("proposals_list");
+    proposalsList.innerHTML = ''; // Clear existing content
+    
+    if (proposals.length === 0) {
+      proposalsList.innerHTML = '<p>No proposals found</p>';
+      return;
+    }
+    
+    // Create table
+    const table = document.createElement('table');
+    table.style.width = '100%';
+    table.style.borderCollapse = 'collapse';
+    table.style.marginTop = '10px';
+    
+    // Add header
+    const thead = document.createElement('thead');
+    thead.innerHTML = `
+      <tr>
+        <th style="border: 1px solid #ddd; padding: 8px;">ID</th>
+        <th style="border: 1px solid #ddd; padding: 8px;">Description</th>
+        <th style="border: 1px solid #ddd; padding: 8px;">Deadline</th>
+        <th style="border: 1px solid #ddd; padding: 8px;">For Votes</th>
+        <th style="border: 1px solid #ddd; padding: 8px;">Against Votes</th>
+      </tr>
+    `;
+    table.appendChild(thead);
+    
+    // Add proposals
+    const tbody = document.createElement('tbody');
+    proposals.forEach(proposal => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="border: 1px solid #ddd; padding: 8px;">${proposal.id}</td>
+        <td style="border: 1px solid #ddd; padding: 8px;">${proposal.description}</td>
+        <td style="border: 1px solid #ddd; padding: 8px;">${formatDate(proposal.deadline)}</td>
+        <td style="border: 1px solid #ddd; padding: 8px;">${proposal.forVotes}</td>
+        <td style="border: 1px solid #ddd; padding: 8px;">${proposal.againstVotes}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    
+    proposalsList.appendChild(table);
+  } catch (error) {
+    show("results", `Error loading proposals: ${error.message}`);
+  }
+}
+
+// Add event listener for refresh button
+document.getElementById("refresh_proposals").addEventListener("click", displayProposals);
+
+// Modify submitProposal to refresh the list after submission
 document.getElementById("submit_proposal").addEventListener("click", async () => {
   const description = document.getElementById("proposal_description").value;
   const deadline = document.getElementById("proposal_deadline").value;
@@ -51,6 +113,9 @@ document.getElementById("submit_proposal").addEventListener("click", async () =>
     show("results", `Error: ${error.message}`);
   }
 });
+
+// Display proposals when page loads
+document.addEventListener('DOMContentLoaded', displayProposals);
 
 document.getElementById("compute_vote_tree").addEventListener("click", async () => {
   const leaves = [
@@ -68,13 +133,27 @@ document.getElementById("compute_vote_tree").addEventListener("click", async () 
     // Compute root hash
     const rootHash = await pedersenHashArray([level1Hash1, level1Hash2]);
     
-    // Create merkle paths for each leaf as strings
+    // Create merkle paths for each leaf as strings, ensuring they're within field modulus
     const merklePaths = {
-      0: [leaves[1].toString(), level1Hash2.toString()], // Path for leaf 0
-      1: [leaves[0].toString(), level1Hash2.toString()], // Path for leaf 1
-      2: [leaves[3].toString(), level1Hash1.toString()], // Path for leaf 2
-      3: [leaves[2].toString(), level1Hash1.toString()]  // Path for leaf 3
+      0: [
+        BigInt('0x' + leaves[1].replace(/0x/gi, '')).toString(),
+        level1Hash2.toString()
+      ],
+      1: [
+        BigInt('0x' + leaves[0].replace(/0x/gi, '')).toString(),
+        level1Hash2.toString()
+      ],
+      2: [
+        BigInt('0x' + leaves[3].replace(/0x/gi, '')).toString(),
+        level1Hash1.toString()
+      ],
+      3: [
+        BigInt('0x' + leaves[2].replace(/0x/gi, '')).toString(),
+        level1Hash1.toString()
+      ]
     };
+
+    console.log(merklePaths)
     
     // Format the tree visualization
     const tree = `└─ 0x${rootHash.toString(16)}
