@@ -40,12 +40,6 @@ document.getElementById("compute_two_hash").addEventListener("click", async () =
   }
 });
 
-// Function to format timestamp
-function formatDate(timestamp) {
-  const date = new Date(Number(timestamp) * 1000);
-  return date.toLocaleString();
-}
-
 // Function to display proposals
 async function displayProposals() {
   try {
@@ -84,7 +78,7 @@ async function displayProposals() {
       tr.innerHTML = `
         <td style="border: 1px solid #ddd; padding: 8px;">${proposal.id}</td>
         <td style="border: 1px solid #ddd; padding: 8px;">${proposal.description}</td>
-        <td style="border: 1px solid #ddd; padding: 8px;">${formatDate(proposal.deadline)}</td>
+        <td style="border: 1px solid #ddd; padding: 8px;">${proposal.deadline}</td>
         <td style="border: 1px solid #ddd; padding: 8px;">${proposal.forVotes}</td>
         <td style="border: 1px solid #ddd; padding: 8px;">${proposal.againstVotes}</td>
       `;
@@ -98,8 +92,8 @@ async function displayProposals() {
   }
 }
 
-// Add event listener for refresh button
-document.getElementById("refresh_proposals").addEventListener("click", displayProposals);
+// Export the function
+export { displayProposals };
 
 // Modify submitProposal to refresh the list after submission
 document.getElementById("submit_proposal").addEventListener("click", async () => {
@@ -109,13 +103,12 @@ document.getElementById("submit_proposal").addEventListener("click", async () =>
   try {
     await submitProposal(description, deadline);
     show("results", "Proposal submitted successfully!");
+    // Refresh proposals after submission
+    await displayProposals();
   } catch (error) {
     show("results", `Error: ${error.message}`);
   }
 });
-
-// Display proposals when page loads
-document.addEventListener('DOMContentLoaded', displayProposals);
 
 document.getElementById("compute_vote_tree").addEventListener("click", async () => {
   const leaves = [
@@ -227,7 +220,6 @@ document.getElementById("cast_vote").addEventListener("click", async () => {
       return;
     }
     
-    console.log(1111111)
     const { proofBytes, publicInputs } = await generateVoteProof({
       leaves: JSON.parse(storedLeaves),
       rootHash: BigInt(storedRootHash),
@@ -237,11 +229,11 @@ document.getElementById("cast_vote").addEventListener("click", async () => {
       vote,
       index
     });
-    console.log(2222222)
-
     
     await castVote(proofBytes, publicInputs);
     show("results", "Vote cast successfully!");
+    // Refresh proposals after voting
+    await displayProposals();
   } catch (error) {
     show("results", `Error: ${error.message}`);
   }

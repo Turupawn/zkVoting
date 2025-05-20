@@ -1,5 +1,7 @@
+import { displayProposals } from './index.js';
+
 const NETWORK_ID = 17000 // Holesky
-const CONTRACT_ADDRESS = "0xb7d410b84409f084170CAFdfE287F3Bb561a2925"
+const CONTRACT_ADDRESS = "0x35b65d079ec29ca9B1aE7874Efd0215Ae64208F1"
 
 // Define ABI directly instead of loading from file
 const CONTRACT_ABI = [
@@ -91,7 +93,6 @@ const CONTRACT_ABI = [
 let web3;
 let accounts;
 let contract;
-let isAdmin = false;
 
 function metamaskReloadCallback() {
   window.ethereum.on('accountsChanged', () => {
@@ -127,6 +128,8 @@ async function loadDapp() {
     }
 
     contract = await getContract(web3);
+    // Display proposals right after getting the contract
+    await displayProposals();
     
     accounts = await web3.eth.getAccounts();
     if (accounts.length > 0) {

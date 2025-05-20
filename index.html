@@ -38,7 +38,6 @@
       
       <h3>Active Proposals</h3>
       <div id="proposals_list"></div>
-      <button id="refresh_proposals">Refresh Proposals</button>
       
       <h3>Cast Vote</h3>
       <input id="vote_leaf1" type="text" placeholder="Enter first leaf" />
@@ -49,7 +48,11 @@
       <textarea id="vote_tree_result" disabled rows="8" style="width: 100%; font-family: monospace;" placeholder="Vote tree will appear here"></textarea>
       <input id="vote_private_key" type="text" placeholder="Enter private key" />
       <input id="vote_proposal_id" type="number" placeholder="Enter proposal ID" />
-      <input id="vote_value" type="number" placeholder="Enter vote (0 or 1)" min="0" max="1" />
+      <select id="vote_value">
+        <option value="">Select vote</option>
+        <option value="1">For</option>
+        <option value="0">Against</option>
+      </select>
       <button id="cast_vote">Cast Vote</button>
       
       <h3>Simple Hash</h3>
