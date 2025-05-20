@@ -14,6 +14,8 @@ bb write_solidity_verifier -k ./target/vk -o ./target/Verifier.sol
 
 ## Load the frontend
 
+Install npm (I recommend using [nvm](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating)) and [bunx](https://bun.sh/docs/installation) and then:
+
 ```
 npm install
 bunx vite
